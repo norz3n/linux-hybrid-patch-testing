@@ -1,0 +1,32 @@
+name: Patch Testing for Kernel
+on:
+    workflow_dispatch:
+
+env:
+    PKGDEST: "/tmp/linux-hybrid"
+
+jobs:
+    build-kernel:
+
+        runs-on: ubuntu-latest
+        container: archlinux:base-devel
+
+        steps:
+
+            - name: Install Deps
+              run: pacman -Syu --noconfirm git
+
+            - name: Clone kernel PKGBUILD
+              run: |
+                git clone https://gitlab.com/hybrid-project-developers/pkgbuilds/hybrid-core-pkgbuilds/kernel/linux-hybrid.git
+                cd linux-hybrid
+
+            - name: Prepare for makepkg
+              run: |
+                pacman -Syu --noconfirm sudo
+                useradd user -G wheel && echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+                chown user -R ..
+                chown user -R /tmp
+
+            - name: Compile
+              run: su user -c "yes '' | makepkg --noconfirm -s"
