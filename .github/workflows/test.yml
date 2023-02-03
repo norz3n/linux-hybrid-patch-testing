@@ -29,7 +29,9 @@ jobs:
                 chown user -R /tmp
 
             - name: Compile
-              run: su user -c "yes '' | makepkg --noconfirm -s"
+              run: | 
+                cd /__w/linux-hybrid-patch-testing/linux-hybrid-patch-testing/linux-hybrid
+                su user -c "yes '' | makepkg --noconfirm -s"
             
             - uses: actions/upload-artifact@v3
               with:
