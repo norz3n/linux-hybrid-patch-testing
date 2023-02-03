@@ -1,31 +1,37 @@
 name: Patch Testing for Kernel
 on:
-  workflow_dispatch:
+    workflow_dispatch:
 
 env:
-  PKGDEST: "/tmp/linux-hybrid"
+    PKGDEST: "/tmp/linux-hybrid"
 
 jobs:
-  build-kernel:
-    runs-on: ubuntu-latest
-    container: archlinux:base-devel
+    build-kernel:
 
-    steps:
-      - name: Install Deps
-        run: pacman -Syu --noconfirm git
+        runs-on: ubuntu-latest
+        container: archlinux:base-devel
 
-      - name: Clone kernel PKGBUILD
-        run: |
-          git clone https://gitlab.com/hybrid-project-developers/pkgbuilds/hybrid-core-pkgbuilds/kernel/linux-hybrid.git
-          pwd
-          ls
+        steps:
 
-      - name: Prepare for makepkg
-        run: |
-          pacman -Syu --noconfirm sudo
-          useradd user -G wheel && echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-          chown user -R ..
-          chown user -R /tmp
+            - name: Install Deps
+              run: pacman -Syu --noconfirm git
+
+            - name: Clone kernel PKGBUILD
+              run: |
+                git clone https://gitlab.com/hybrid-project-developers/pkgbuilds/hybrid-core-pkgbuilds/kernel/linux-hybrid.git
+                cd linux-hybrid
+
+            - name: Prepare for makepkg
+              run: |
+                pacman -Syu --noconfirm sudo
+                useradd user -G wheel && echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+                chown user -R ..
+                chown user -R /tmp
 
             - name: Compile
               run: su user -c "yes '' | makepkg --noconfirm -s"
+            
+            - uses: actions/upload-artifact@v3
+              with:
+                name: kernel-packages-${{ env._cpusched }}
+                path: ${{ env.PKGDEST }}/linux*.pkg.tar.zst
